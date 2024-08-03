@@ -101,6 +101,7 @@ export class Folder<Root extends boolean = boolean> {
   }
   public select() {
     this.selected = true;
+    return this;
   }
 
   // === expanded === //
@@ -117,8 +118,10 @@ export class Folder<Root extends boolean = boolean> {
   }
   public expand() {
     this.expanded = true;
+    return this;
   }
   public collapse() {
     this.expanded = false;
+    return this;
   }
 }

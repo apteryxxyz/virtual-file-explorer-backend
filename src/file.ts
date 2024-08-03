@@ -100,6 +100,7 @@ export class File {
   }
   public select() {
     this.selected = true;
+    return this;
   }
 
   // === opened === //
@@ -119,9 +120,11 @@ export class File {
   }
   public open() {
     this.opened = true;
+    return this;
   }
   public close() {
     this.opened = false;
+    return this;
   }
 
   // === focused === //
@@ -141,5 +144,6 @@ export class File {
   }
   public focus() {
     this.focused = true;
+    return this;
   }
 }
