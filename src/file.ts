@@ -4,7 +4,18 @@ import type { Folder } from './folder';
 
 export class File {
   public readonly type = 'file';
-  public readonly changes = new EventEmitter2({ wildcard: true });
+  public readonly changes = new EventEmitter2({
+    wildcard: true,
+    delimiter: ':',
+  });
+  /** @internal */
+  public _emit(event: string) {
+    this.changes.emit(event);
+    for (const a of this.ancestors) {
+      if (a === this.parent) a.changes.emit(`child:${event}`);
+      else a.changes.emit(`descendant:${event}`);
+    }
+  }
 
   public constructor(name?: File['name']) {
     if (name) this._name = name;
@@ -19,17 +30,15 @@ export class File {
   public set parent(parent) {
     if (this._parent) {
       this._parent.children.remove(this);
-      this._parent.changes.emit('childDelete', this);
-      this._parent.changes.emit('childrenUpdate');
+      this._parent._emit('children');
     }
     if (parent) {
       parent.children.push(this);
-      parent.changes.emit('childCreate', this);
-      parent.changes.emit('childrenUpdate');
+      parent._emit('children');
     }
     this._parent = parent;
     for (const a of this.ancestors) a.expanded = true;
-    this.changes.emit('parentUpdate');
+    this._emit('parent');
   }
   public get root(): Folder<true> | null {
     let parent = this.parent;
@@ -63,8 +72,7 @@ export class File {
       if (existing) throw new Error('A child with that name already exists');
     }
     this._name = name;
-    this.parent?.changes.emit('childrenUpdate');
-    this.changes.emit('nameUpdate');
+    this._emit('name');
   }
 
   // === path === //
@@ -82,7 +90,7 @@ export class File {
   public set content(content) {
     if (this._content === content) return;
     this._content = content;
-    this.changes.emit('contentUpdate');
+    this._emit('content');
   }
 
   // === selected === //
@@ -96,10 +104,15 @@ export class File {
     if (selected) for (const a of this.ancestors) a.expanded = true;
     if (selected) for (const d of this.root?.lineage || []) d.selected = false;
     this._selected = selected;
-    this.changes.emit('selectedUpdate');
+    this._emit('selected');
   }
   public select() {
     this.selected = true;
+    return this;
+  }
+  public deselect() {
+    if (this.root) this.root.selected = true;
+    this.selected = false;
     return this;
   }
 
@@ -115,8 +128,7 @@ export class File {
       for (const d of this.root?.descendants || [])
         if (d.type === 'file') d.opened = false;
     this._opened = opened;
-    this.changes.emit('openedUpdate');
-    this.root?.changes.emit('openedChange');
+    this._emit('opened');
   }
   public open() {
     this.opened = true;
@@ -139,11 +151,14 @@ export class File {
       for (const d of this.root?.descendants || [])
         if (d.type === 'file') d.focused = false;
     this._focused = focused;
-    this.changes.emit('focusedUpdate');
-    this.root?.changes.emit('focusedChange');
+    this._emit('focused');
   }
   public focus() {
     this.focused = true;
+    return this;
+  }
+  public blur() {
+    this.focused = false;
     return this;
   }
 }

@@ -3,7 +3,22 @@ import { Children } from './children';
 
 export class Folder<Root extends boolean = boolean> {
   public readonly type = 'folder';
-  public readonly changes = new EventEmitter2({ wildcard: true });
+  public readonly changes = new EventEmitter2({
+    wildcard: true,
+    delimiter: ':',
+  });
+  /** @internal */
+  public _emit(event: string) {
+    this.changes.emit(event);
+    for (const a of this.ancestors) {
+      if (a === this.parent) a.changes.emit(`child:${event}`);
+      else a.changes.emit(`descendant:${event}`);
+    }
+    for (const d of this.descendants) {
+      if (d.parent === this) d.changes.emit(`parent:${event}`);
+      else d.changes.emit(`ancestor:${event}`);
+    }
+  }
 
   public constructor(name?: Folder<Root>['name']) {
     if (name) this._name = name;
@@ -18,17 +33,15 @@ export class Folder<Root extends boolean = boolean> {
   public set parent(parent) {
     if (this._parent) {
       this._parent.children.remove(this);
-      this._parent.changes.emit('childrenUpdate');
-      this._parent.changes.emit('childCreate', this);
+      this._parent._emit('children');
     }
     if (parent) {
       parent.children.push(this);
-      parent.changes.emit('childrenUpdate');
-      parent.changes.emit('childCreate', this);
+      parent._emit('children');
     }
     this._parent = parent;
+    this._emit('parent');
     for (const a of this.ancestors) a.expanded = true;
-    this.changes.emit('parentUpdate');
   }
   public get root(): Folder<true> | null {
     if (!this.parent) return this as never;
@@ -76,8 +89,7 @@ export class Folder<Root extends boolean = boolean> {
       if (existing) throw new Error('Name already exists');
     }
     this._name = name as never;
-    this.parent?.changes.emit('childrenUpdate');
-    this.changes.emit('nameUpdate');
+    this._emit('name');
   }
 
   // === path === //
@@ -97,10 +109,15 @@ export class Folder<Root extends boolean = boolean> {
     if (this._selected === selected) return;
     if (selected) for (const d of this.root?.lineage || []) d.selected = false;
     this._selected = selected;
-    this.changes.emit('selectedUpdate');
+    this._emit('selected');
   }
   public select() {
     this.selected = true;
+    return this;
+  }
+  public deselect() {
+    if (this.root) this.root.selected = true;
+    this.selected = false;
     return this;
   }
 
@@ -114,7 +131,7 @@ export class Folder<Root extends boolean = boolean> {
     if (this._expanded === expanded) return;
     if (expanded) for (const a of this.ancestors) a.expanded = true;
     this._expanded = expanded;
-    this.changes.emit('expandedUpdate');
+    this._emit('expanded');
   }
   public expand() {
     this.expanded = true;
