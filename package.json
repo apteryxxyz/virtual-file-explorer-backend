@@ -1,0 +1,39 @@
+{
+  "name": "virtual-file-explorer-backend",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "A virtual file explorer backend.",
+  "license": "MIT",
+  "keywords": ["virtual", "file", "explorer", "backend"],
+  "homepage": "https://github.com/apteryxxyz/virtual-file-explorer-backend",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apteryxxyz/virtual-file-explorer-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/apteryxxyz/virtual-file-explorer-backend/issues"
+  },
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "lint": "biome lint . --write",
+    "format": "biome format . --write",
+    "check": "tsc --noEmit",
+    "build": "tsup",
+    "dev": "pnpm build --watch"
+  },
+  "dependencies": {
+    "eventemitter2": "^6.4.9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@types/node": "^20.14.10",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3"
+  }
+}
