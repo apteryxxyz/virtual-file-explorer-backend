@@ -1,7 +1,7 @@
 {
   "name": "virtual-file-explorer-backend",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A virtual file explorer backend.",
   "license": "MIT",
   "keywords": ["virtual", "file", "explorer", "backend"],
