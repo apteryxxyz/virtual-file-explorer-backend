@@ -12,11 +12,11 @@ export class Folder<Root extends boolean = boolean> {
     this.changes.emit(event);
     for (const a of this.ancestors) {
       if (a === this.parent) a.changes.emit(`child:${event}`);
-      else a.changes.emit(`descendant:${event}`);
+      a.changes.emit(`descendant:${event}`);
     }
     for (const d of this.descendants) {
       if (d.parent === this) d.changes.emit(`parent:${event}`);
-      else d.changes.emit(`ancestor:${event}`);
+      d.changes.emit(`ancestor:${event}`);
     }
   }
 

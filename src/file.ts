@@ -13,7 +13,7 @@ export class File {
     this.changes.emit(event);
     for (const a of this.ancestors) {
       if (a === this.parent) a.changes.emit(`child:${event}`);
-      else a.changes.emit(`descendant:${event}`);
+      a.changes.emit(`descendant:${event}`);
     }
   }
 
