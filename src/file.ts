@@ -124,9 +124,6 @@ export class File {
   }
   public set opened(opened) {
     if (this._opened === opened) return;
-    if (opened)
-      for (const d of this.root?.descendants || [])
-        if (d.type === 'file') d.opened = false;
     this._opened = opened;
     this._emit('opened');
   }
